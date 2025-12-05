@@ -21,6 +21,8 @@ const Navbar = () => {
       sx={{ 
         background: 'linear-gradient(135deg, #003d7a 0%, #0066cc 50%, #4fc3f7 100%)',
         borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+        borderTopLeftRadius: 0,
+        borderTopRightRadius: 0,
       }}
     >
       <Toolbar sx={{ py: 1 }}>
@@ -50,7 +52,7 @@ const Navbar = () => {
               WebkitTextFillColor: 'transparent',
             }}
           >
-            Catalog Orders
+            Catálogo & Pedidos
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 1 }}>

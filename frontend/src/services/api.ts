@@ -56,8 +56,8 @@ apiClient.interceptors.response.use(
     };
   },
   (error: AxiosError<ApiResponse<unknown>>) => {
-    // Se o erro tem a estrutura do envelope
-    if (error.response?.data && typeof error.response.data === 'object' && 'cod_retorno' in error.response.data) {
+    // Se o erro tem a estrutura do envelope (camelCase)
+    if (error.response?.data && typeof error.response.data === 'object' && 'codRetorno' in error.response.data) {
       const apiResponse = error.response.data as ApiResponse<unknown>;
       const errorMessage = apiResponse.mensagem || 'Erro desconhecido';
       const customError = new Error(errorMessage);
@@ -65,8 +65,27 @@ apiClient.interceptors.response.use(
       return Promise.reject(customError);
     }
     
-    // Erro de rede ou outro tipo
-    return Promise.reject(error);
+    // Se não tem envelope mas tem mensagem de erro padrão do Axios
+    if (error.response?.data && typeof error.response.data === 'object') {
+      // Tentar extrair mensagem de diferentes formatos de erro
+      const errorData = error.response.data as any;
+      if (errorData.message) {
+        const customError = new Error(errorData.message);
+        (customError as any).response = error.response;
+        return Promise.reject(customError);
+      }
+      if (errorData.title || errorData.detail) {
+        const customError = new Error(errorData.title || errorData.detail);
+        (customError as any).response = error.response;
+        return Promise.reject(customError);
+      }
+    }
+    
+    // Erro de rede ou outro tipo - usar mensagem padrão do Axios se disponível
+    const errorMessage = error.message || 'Erro na requisição';
+    const customError = new Error(errorMessage);
+    (customError as any).response = error.response;
+    return Promise.reject(customError);
   }
 );
 

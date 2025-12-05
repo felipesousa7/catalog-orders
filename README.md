@@ -258,19 +258,46 @@ Todas as respostas seguem o formato padrão:
 
 ## 🧪 Testes
 
-### Executar Testes Unitários
+### Executar Testes Unitários (Backend)
 
 ```bash
 cd backend/tests/CatalogOrders.Tests
 dotnet test
 ```
 
+### Executar Testes E2E (Frontend)
+
+**Pré-requisitos:**
+- Backend e Frontend devem estar rodando
+- Backend em `http://localhost:8080`
+- Frontend em `http://localhost:3000`
+
+**Executar testes em modo headless:**
+```bash
+cd frontend
+npm run test:e2e
+```
+
+**Executar testes com interface gráfica:**
+```bash
+cd frontend
+npm run test:e2e:open
+```
+
 ### Cobertura de Testes
 
-Os testes focam em:
+**Backend - Testes Unitários:**
 - Regras de negócio (validação de estoque, criação de pedidos)
 - Use Cases principais
 - Validações de entrada
+
+**Frontend - Testes E2E:**
+- Fluxo completo de CRUD de produtos
+- Fluxo completo de CRUD de clientes
+- Criação e gerenciamento de pedidos
+- Validações de formulários
+- Busca e filtros
+- Ordenação de tabelas
 
 ## 🎯 Decisões Técnicas
 

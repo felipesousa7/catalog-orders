@@ -13,7 +13,6 @@ import {
   TableRow,
   IconButton,
   Typography,
-  Alert,
   CircularProgress,
   Select,
   MenuItem,
@@ -25,6 +24,7 @@ import { useNavigate } from 'react-router-dom';
 import { productService } from '../services/productService';
 import { customerService } from '../services/customerService';
 import { orderService } from '../services/orderService';
+import { useSnackbar } from '../contexts/SnackbarContext';
 import type { ProductList, CustomerList, CreateOrderItem } from '../types/api';
 
 interface OrderItemWithProduct extends CreateOrderItem {
@@ -32,14 +32,15 @@ interface OrderItemWithProduct extends CreateOrderItem {
   productSku: string;
   unitPrice: number;
   lineTotal: number;
+  quantityInput?: string; // Para permitir campo vazio temporariamente
 }
 
 const CreateOrderPage = () => {
   const navigate = useNavigate();
+  const { showSuccess, showError } = useSnackbar();
   const [customers, setCustomers] = useState<CustomerList[]>([]);
   const [products, setProducts] = useState<ProductList[]>([]);
   const [productsLoading, setProductsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerList | null>(null);
   const [productSearch, setProductSearch] = useState('');
   const [orderItems, setOrderItems] = useState<OrderItemWithProduct[]>([]);
@@ -51,11 +52,12 @@ const CreateOrderPage = () => {
         const result = await customerService.list({ pageSize: 100 });
         setCustomers(result.items);
       } catch (err: any) {
-        setError(err.message || 'Erro ao carregar clientes');
+        const errorMessage = err.message || 'Erro ao carregar clientes';
+        showError(errorMessage);
       }
     };
     loadCustomers();
-  }, []);
+  }, [showError]);
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -73,7 +75,8 @@ const CreateOrderPage = () => {
         });
         setProducts(result.items);
       } catch (err: any) {
-        setError(err.message || 'Erro ao buscar produtos');
+        const errorMessage = err.message || 'Erro ao buscar produtos';
+        showError(errorMessage);
       } finally {
         setProductsLoading(false);
       }
@@ -88,13 +91,21 @@ const CreateOrderPage = () => {
     // Verificar se produto já está no pedido
     const existingItem = orderItems.find((item) => item.productId === product.id);
     if (existingItem) {
-      setError('Produto já adicionado ao pedido');
+      // Se já existe, aumenta a quantidade em 1 (se houver estoque)
+      const currentQty = existingItem.quantity;
+      if (currentQty >= product.stockQty) {
+        showError(`Quantidade máxima disponível em estoque: ${product.stockQty}`);
+        return;
+      }
+      handleUpdateQuantity(product.id, currentQty + 1);
+      showSuccess(`Quantidade de ${product.name} aumentada!`);
+      setProductSearch('');
       return;
     }
 
     // Verificar estoque
     if (product.stockQty === 0) {
-      setError('Produto sem estoque disponível');
+      showError('Produto sem estoque disponível');
       return;
     }
 
@@ -105,32 +116,36 @@ const CreateOrderPage = () => {
       productSku: product.sku,
       unitPrice: product.price,
       lineTotal: product.price,
+      quantityInput: undefined,
     };
     setOrderItems([...orderItems, newItem]);
     setProductSearch('');
-    setError(null);
+    showSuccess(`${product.name} adicionado ao pedido!`);
   };
 
   const handleUpdateQuantity = (productId: number, quantity: number) => {
-    if (quantity <= 0) {
-      handleRemoveProduct(productId);
-      return;
+    // Verificar estoque apenas se quantidade for válida (> 0)
+    if (quantity > 0) {
+      const product = products.find((p) => p.id === productId);
+      if (product && quantity > product.stockQty) {
+        showError(`Quantidade excede o estoque disponível (${product.stockQty})`);
+        return;
+      }
     }
 
-    const product = products.find((p) => p.id === productId);
-    if (product && quantity > product.stockQty) {
-      setError(`Quantidade excede o estoque disponível (${product.stockQty})`);
-      return;
-    }
-
+    // Atualizar quantidade e recalcular total (se quantidade > 0)
     setOrderItems(
       orderItems.map((item) =>
         item.productId === productId
-          ? { ...item, quantity, lineTotal: item.unitPrice * quantity }
+          ? { 
+              ...item, 
+              quantity: quantity > 0 ? quantity : item.quantity, // Mantém quantidade anterior se for <= 0
+              lineTotal: quantity > 0 ? item.unitPrice * quantity : item.lineTotal,
+              quantityInput: quantity > 0 ? undefined : '' // Limpa input temporário se quantidade válida
+            }
           : item
       )
     );
-    setError(null);
   };
 
   const handleRemoveProduct = (productId: number) => {
@@ -143,16 +158,22 @@ const CreateOrderPage = () => {
 
   const handleSubmit = async () => {
     if (!selectedCustomer) {
-      setError('Selecione um cliente');
+      showError('Selecione um cliente');
       return;
     }
     if (orderItems.length === 0) {
-      setError('Adicione pelo menos um item ao pedido');
+      showError('Adicione pelo menos um item ao pedido');
+      return;
+    }
+
+    // Validar se todas as quantidades são válidas (> 0)
+    const invalidItems = orderItems.filter(item => item.quantity <= 0);
+    if (invalidItems.length > 0) {
+      showError('Todos os itens devem ter quantidade maior que zero');
       return;
     }
 
     setSubmitting(true);
-    setError(null);
     try {
       await orderService.create({
         customerId: selectedCustomer.id,
@@ -161,9 +182,11 @@ const CreateOrderPage = () => {
           quantity: item.quantity,
         })),
       });
+      showSuccess('Pedido criado com sucesso!');
       navigate('/orders');
     } catch (err: any) {
-      setError(err.message || 'Erro ao criar pedido');
+      const errorMessage = err.message || 'Erro ao criar pedido';
+      showError(errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -200,11 +223,6 @@ const CreateOrderPage = () => {
         </Box>
       </Box>
 
-      {error && (
-        <Alert severity="error" onClose={() => setError(null)} sx={{ mb: 3 }}>
-          {error}
-        </Alert>
-      )}
 
       <Paper 
         elevation={0}
@@ -215,7 +233,7 @@ const CreateOrderPage = () => {
           border: '1px solid rgba(0, 102, 204, 0.15)',
         }}
       >
-        <FormControl fullWidth sx={{ mb: 3 }}>
+        <FormControl fullWidth sx={{ mb: 3 }} error={!selectedCustomer && orderItems.length > 0}>
           <InputLabel>Cliente *</InputLabel>
           <Select
             value={selectedCustomer?.id || ''}
@@ -224,6 +242,7 @@ const CreateOrderPage = () => {
               const customer = customers.find((c) => c.id === e.target.value);
               setSelectedCustomer(customer || null);
             }}
+            aria-describedby={!selectedCustomer && orderItems.length > 0 ? 'customer-error' : undefined}
           >
             {customers.map((customer) => (
               <MenuItem key={customer.id} value={customer.id}>
@@ -231,6 +250,11 @@ const CreateOrderPage = () => {
               </MenuItem>
             ))}
           </Select>
+          {!selectedCustomer && orderItems.length > 0 && (
+            <Typography id="customer-error" color="error" variant="caption" role="alert" sx={{ mt: 0.5, display: 'block' }}>
+              Selecione um cliente antes de criar o pedido
+            </Typography>
+          )}
         </FormControl>
 
         <Autocomplete
@@ -238,7 +262,14 @@ const CreateOrderPage = () => {
           getOptionLabel={(option) => `${option.name} (${option.sku}) - Estoque: ${option.stockQty}`}
           inputValue={productSearch}
           onInputChange={(_, newValue) => setProductSearch(newValue)}
-          onChange={(_, value) => handleAddProduct(value)}
+          onChange={(_, value) => {
+            handleAddProduct(value);
+            // Resetar o valor do Autocomplete para permitir selecionar outro produto
+            setTimeout(() => {
+              setProductSearch('');
+            }, 100);
+          }}
+          value={null}
           loading={productsLoading}
           renderInput={(params) => (
             <TextField
@@ -327,8 +358,40 @@ const CreateOrderPage = () => {
                       <TextField
                         type="number"
                         size="small"
-                        value={item.quantity}
-                        onChange={(e) => handleUpdateQuantity(item.productId, parseInt(e.target.value, 10) || 1)}
+                        value={item.quantityInput !== undefined ? item.quantityInput : item.quantity}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          
+                          // Se campo estiver vazio, apenas atualizar o input temporário
+                          if (value === '') {
+                            setOrderItems(
+                              orderItems.map((i) =>
+                                i.productId === item.productId
+                                  ? { ...i, quantityInput: '' }
+                                  : i
+                              )
+                            );
+                            return;
+                          }
+                          
+                          // Se tiver valor, parsear e atualizar
+                          const numValue = parseInt(value, 10);
+                          if (!isNaN(numValue) && numValue > 0) {
+                            handleUpdateQuantity(item.productId, numValue);
+                          }
+                        }}
+                        onBlur={(e) => {
+                          // Se campo estiver vazio ao perder foco, voltar para quantidade anterior (não forçar 1)
+                          if (e.target.value === '' || parseInt(e.target.value, 10) <= 0) {
+                            setOrderItems(
+                              orderItems.map((i) =>
+                                i.productId === item.productId
+                                  ? { ...i, quantityInput: undefined } // Remove input temporário, volta para quantidade original
+                                  : i
+                              )
+                            );
+                          }
+                        }}
                         inputProps={{ min: 1, max: 999 }}
                         sx={{ width: 80 }}
                       />

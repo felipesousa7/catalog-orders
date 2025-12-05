@@ -25,6 +25,7 @@ Frontend desenvolvido em React 18+ com TypeScript, Vite e Material-UI.
 frontend/
 ├── src/
 │   ├── components/        # Componentes reutilizáveis
+│   │   ├── common/        # Componentes comuns (DataTable, SearchBar, etc)
 │   │   └── layout/        # Layout components (Navbar)
 │   ├── pages/             # Páginas principais
 │   │   ├── ProductsPage.tsx
@@ -42,6 +43,12 @@ frontend/
 │   │   └── theme.ts
 │   ├── App.tsx            # Componente principal
 │   └── main.tsx           # Entry point
+├── e2e/                   # Testes end-to-end
+│   ├── products.cy.ts     # Testes de produtos
+│   ├── customers.cy.ts    # Testes de clientes
+│   ├── orders.cy.ts       # Testes de pedidos
+│   ├── support/           # Comandos customizados
+│   └── cypress.config.ts  # Configuração do Cypress
 ├── Dockerfile
 └── README.md
 ```
@@ -157,6 +164,60 @@ VITE_API_BASE_URL=http://localhost:8080/api
 - `npm run build` - Build para produção
 - `npm run preview` - Preview do build de produção
 - `npm run lint` - Executa ESLint
+- `npm run test:e2e` - Executa testes e2e em modo headless
+- `npm run test:e2e:open` - Abre interface gráfica do Cypress
+
+## 🧪 Testes E2E
+
+### Pré-requisitos
+
+Antes de executar os testes e2e, certifique-se de que:
+- Backend está rodando em `http://localhost:8080`
+- Frontend está rodando em `http://localhost:3000`
+- Banco de dados tem dados de seed (20 produtos, 10 clientes)
+
+### Executar Testes
+
+**Modo headless (CI/CD):**
+```bash
+npm run test:e2e
+```
+
+**Modo interativo (desenvolvimento):**
+```bash
+npm run test:e2e:open
+```
+
+### Testes Implementados
+
+**Produtos (`e2e/products.cy.ts`):**
+- ✅ Exibição da lista de produtos
+- ✅ Busca por nome e SKU
+- ✅ Criação de produto
+- ✅ Edição de produto
+- ✅ Validação de campos obrigatórios
+- ✅ Ordenação por nome e preço
+- ✅ Filtro por status
+
+**Clientes (`e2e/customers.cy.ts`):**
+- ✅ Exibição da lista de clientes
+- ✅ Busca por nome e email
+- ✅ Criação de cliente
+- ✅ Edição de cliente
+- ✅ Validação de campos obrigatórios
+- ✅ Validação de formato de email
+- ✅ Ordenação por nome e email
+
+**Pedidos (`e2e/orders.cy.ts`):**
+- ✅ Exibição da lista de pedidos
+- ✅ Filtro por status
+- ✅ Ordenação por total e data
+- ✅ Navegação para criar pedido
+- ✅ Visualização de detalhes
+- ✅ Criação de pedido completo
+- ✅ Validação de seleção de cliente
+- ✅ Busca e adição de produtos
+- ✅ Cálculo de total
 
 ## 🐳 Docker
 

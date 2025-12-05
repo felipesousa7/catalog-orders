@@ -331,23 +331,6 @@ Os testes focam em:
 - **Transições de status** (validação de estados)
 - **Use Cases principais** (cenários de erro)
 
-## 🔧 Configuração
-
-### appsettings.json
-
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Host=localhost;Port=5432;Database=catalog_orders;Username=postgres;Password=postgres"
-  },
-  "Serilog": {
-    "WriteTo": [
-      { "Name": "Console" },
-      { "Name": "File", "Args": { "path": "logs/catalog-orders-.log" } }
-    ]
-  }
-}
-```
 
 ### Variáveis de Ambiente (Docker)
 
@@ -403,7 +386,4 @@ Logs estruturados salvos em:
 - Verifique a connection string
 - Veja os logs: `docker-compose logs backend`
 
----
-
-**Última atualização**: Dezembro 2024
 

@@ -46,6 +46,9 @@ public class ListProductsUseCase
                 "sku" => pagination.SortDescending
                     ? queryable.OrderByDescending(p => p.Sku)
                     : queryable.OrderBy(p => p.Sku),
+                "stockqty" => pagination.SortDescending
+                    ? queryable.OrderByDescending(p => p.StockQty)
+                    : queryable.OrderBy(p => p.StockQty),
                 _ => queryable.OrderBy(p => p.Name)
             };
         }

@@ -42,9 +42,12 @@ public class ListOrdersUseCase
                 "totalamount" => pagination.SortDescending
                     ? queryable.OrderByDescending(o => o.TotalAmount)
                     : queryable.OrderBy(o => o.TotalAmount),
-                "status" => pagination.SortDescending
-                    ? queryable.OrderByDescending(o => o.Status)
-                    : queryable.OrderBy(o => o.Status),
+                "customername" => pagination.SortDescending
+                    ? queryable.OrderByDescending(o => o.Customer != null ? o.Customer.Name : string.Empty)
+                    : queryable.OrderBy(o => o.Customer != null ? o.Customer.Name : string.Empty),
+                "itemscount" => pagination.SortDescending
+                    ? queryable.OrderByDescending(o => o.OrderItems.Count)
+                    : queryable.OrderBy(o => o.OrderItems.Count),
                 _ => queryable.OrderByDescending(o => o.CreatedAt)
             };
         }
