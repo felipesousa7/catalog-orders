@@ -72,7 +72,8 @@ public class EnvelopeMiddleware
         try
         {
             using var doc = JsonDocument.Parse(responseText);
-            return doc.RootElement.TryGetProperty("cod_retorno", out _) &&
+            // Backend serializa em camelCase (padrão ASP.NET Core)
+            return doc.RootElement.TryGetProperty("codRetorno", out _) &&
                    doc.RootElement.TryGetProperty("mensagem", out _) &&
                    doc.RootElement.TryGetProperty("data", out _);
         }
@@ -99,7 +100,7 @@ public class EnvelopeMiddleware
 
                 return new
                 {
-                    cod_retorno = 1,
+                    codRetorno = 1,
                     mensagem = message,
                     data = (object?)null
                 };
@@ -108,7 +109,7 @@ public class EnvelopeMiddleware
             {
                 return new
                 {
-                    cod_retorno = 1,
+                    codRetorno = 1,
                     mensagem = "Erro na requisição",
                     data = (object?)null
                 };
@@ -121,7 +122,7 @@ public class EnvelopeMiddleware
             using var doc = JsonDocument.Parse(responseText);
             return new
             {
-                cod_retorno = 0,
+                codRetorno = 0,
                 mensagem = (string?)null,
                 data = JsonSerializer.Deserialize<object>(responseText)
             };
@@ -131,7 +132,7 @@ public class EnvelopeMiddleware
             // Se não conseguir parsear, retorna como string
             return new
             {
-                cod_retorno = 0,
+                codRetorno = 0,
                 mensagem = (string?)null,
                 data = responseText
             };

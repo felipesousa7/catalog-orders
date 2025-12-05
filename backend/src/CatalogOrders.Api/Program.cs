@@ -41,7 +41,12 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://localhost:3000", "http://localhost:5174")
+        policy.WithOrigins(
+                "http://localhost:5173",  // Vite dev server
+                "http://localhost:3000",  // Docker frontend (padrão)
+                "http://localhost:3001",   // Docker frontend (alternativo)
+                "http://localhost:5174"   // Vite dev server (alternativo)
+              )
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();

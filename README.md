@@ -33,13 +33,14 @@ Sistema completo de gestão de catálogo e pedidos que permite:
 - **Serilog** - Logs estruturados
 - **AutoMapper** - Mapeamento DTO ↔ Entity
 - **FluentValidation** - Validação de entrada
-- **xUnit** - Framework de testes (a implementar)
+- **xUnit** - Framework de testes unitários
 
 ### Frontend
-- **React 18+** com TypeScript
-- **Vite** - Build tool
-- **Material-UI** - Componentes UI
-- **Axios** - Cliente HTTP
+- **React 19.2.0** com TypeScript 5.9.3
+- **Vite 7.2.4** - Build tool e dev server
+- **Material-UI (MUI) 5.x** - Biblioteca de componentes
+- **React Router DOM 6.x** - Roteamento
+- **Axios** - Cliente HTTP com interceptors
 
 ### Infraestrutura
 - **Docker** & **Docker Compose** - Containerização
@@ -104,7 +105,13 @@ O projeto segue os princípios de **Clean Architecture** e **SOLID**:
 │   └── Dockerfile
 ├── frontend/
 │   ├── src/
-│   └── Dockerfile
+│   │   ├── components/    # Componentes reutilizáveis
+│   │   ├── pages/         # Páginas principais
+│   │   ├── services/     # Serviços de API
+│   │   ├── types/         # Tipos TypeScript
+│   │   └── theme/         # Tema Material-UI
+│   ├── Dockerfile
+│   └── README.md
 ├── docker-compose.yml
 ├── .env.example
 └── README.md
@@ -138,9 +145,9 @@ O projeto segue os princípios de **Clean Architecture** e **SOLID**:
    ```
 
 4. **Acesse a aplicação:**
+   - **Frontend**: http://localhost:3000
    - **API**: http://localhost:8080
    - **Swagger**: http://localhost:8080/swagger
-   - **Frontend**: http://localhost:5173 (quando implementado)
 
 5. **Ver logs:**
    ```bash
@@ -184,11 +191,24 @@ O projeto segue os princípios de **Clean Architecture** e **SOLID**:
 
 #### Frontend
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
+1. **Instale as dependências:**
+   ```bash
+   cd frontend
+   npm install
+   ```
+
+2. **Configure a URL da API** (opcional, padrão: `http://localhost:8080/api`):
+   ```bash
+   # Criar arquivo .env
+   echo "VITE_API_BASE_URL=http://localhost:8080/api" > .env
+   ```
+
+3. **Execute o frontend:**
+   ```bash
+   npm run dev
+   ```
+   
+   A aplicação estará disponível em `http://localhost:5173`
 
 ## 🔌 API Endpoints
 
@@ -315,6 +335,8 @@ Veja `.env.example` para todas as variáveis disponíveis:
 - `ASPNETCORE_ENVIRONMENT` - Ambiente da aplicação
 - `ASPNETCORE_URLS` - URLs da API
 - `BACKEND_PORT` - Porta do backend
+- `FRONTEND_PORT` - Porta do frontend (padrão: 3000)
+- `VITE_API_BASE_URL` - URL base da API (usado no build do frontend)
 
 ## 🔒 Segurança
 
