@@ -353,15 +353,21 @@ Este projeto utilizou assistência de IA (Cursor/Claude) para:
 
 ## 📝 Variáveis de Ambiente
 
-Veja `.env.example` para todas as variáveis disponíveis:
+Copie o arquivo `.env.example` para `.env` e ajuste conforme necessário:
 
-- `POSTGRES_USER` - Usuário do PostgreSQL
-- `POSTGRES_PASSWORD` - Senha do PostgreSQL
-- `POSTGRES_DB` - Nome do banco de dados
-- `POSTGRES_PORT` - Porta do PostgreSQL
-- `ASPNETCORE_ENVIRONMENT` - Ambiente da aplicação
-- `ASPNETCORE_URLS` - URLs da API
-- `BACKEND_PORT` - Porta do backend
+```bash
+cp .env.example .env
+```
+
+**Variáveis disponíveis:**
+
+- `POSTGRES_USER` - Usuário do PostgreSQL (padrão: postgres)
+- `POSTGRES_PASSWORD` - Senha do PostgreSQL (padrão: postgres)
+- `POSTGRES_DB` - Nome do banco de dados (padrão: catalog_orders)
+- `POSTGRES_PORT` - Porta do PostgreSQL (padrão: 5432)
+- `ASPNETCORE_ENVIRONMENT` - Ambiente da aplicação (Development/Production)
+- `ASPNETCORE_URLS` - URLs da API (padrão: http://+:8080)
+- `BACKEND_PORT` - Porta do backend (padrão: 8080)
 - `FRONTEND_PORT` - Porta do frontend (padrão: 3000)
 - `VITE_API_BASE_URL` - URL base da API (usado no build do frontend)
 
